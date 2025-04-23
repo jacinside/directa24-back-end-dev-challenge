@@ -29,7 +29,7 @@ class DirectorServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        directorService = new DirectorService(restTemplate, baseUrl);
+        this.directorService = new DirectorService(restTemplate, baseUrl);
     }
 
     @Test
