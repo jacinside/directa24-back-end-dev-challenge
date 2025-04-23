@@ -1,0 +1,16 @@
+server:
+  version: 1.0.0
+  port: 8080
+
+spring:
+  application:
+    name: directa24-backend-challenge-directors-api
+
+movies:
+  api:
+    base-url: https://challenge.iugolabs.com/api/movies/search
+
+logging:
+  level:
+    root: INFO
+    com.directa24.movies: DEBUG
