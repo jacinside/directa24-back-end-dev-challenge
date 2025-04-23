@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -24,7 +27,7 @@ class DirectorServiceTest {
     @InjectMocks
     private DirectorService directorService;
 
-    private final String baseUrl = "http://example.com";
+    private final String baseUrl = "https://example.com";
 
     @BeforeEach
     void setUp() {
@@ -66,7 +69,30 @@ class DirectorServiceTest {
     void getDirectors_RestClientException() {
         // Mock exception
         String url = baseUrl + "?page=1";
-        when(restTemplate.getForObject(url, MovieResponse.class)).thenThrow(new RestClientException("500 Internal Server Error"));
+        when(restTemplate.getForObject(url, MovieResponse.class)).thenThrow(new RestClientException("400 Internal Server Error"));
+
+        // Call the method
+        List<String> directors = directorService.getDirectors(1);
+
+        // Verify the result
+        assertTrue(directors.isEmpty());
+
+        // Verify interactions
+        verify(restTemplate, times(1)).getForObject(url, MovieResponse.class);
+    }
+
+    @Test
+    void getDirectors_HttpServerErrorException() {
+        // Mock exception
+        String url = baseUrl + "?page=1";
+        when(restTemplate.getForObject(url, MovieResponse.class))
+            .thenThrow(HttpServerErrorException.create(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal Server Error",
+                HttpHeaders.EMPTY ,
+                null,
+                null
+            ));
 
         // Call the method
         List<String> directors = directorService.getDirectors(1);

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -77,8 +78,15 @@ public class DirectorService {
                 });
 
                 page++;
+            } catch (HttpServerErrorException e) {
+                logger.error("Server error occurred while fetching data from URL: {}. Status code: {}, Response body: {}",
+                    url, e.getStatusCode(), e.getResponseBodyAsString(), e);
+                break;
             } catch (RestClientException e) {
                 logger.error("Error occurred while fetching data from URL: {}", url, e);
+                break;
+            } catch (Exception e) {
+                logger.error("An unexpected error occurred: {}", e.getMessage(), e);
                 break;
             }
         } while (page <= totalPages);
