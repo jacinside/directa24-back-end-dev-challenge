@@ -12,11 +12,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class DirectorServiceTest {
@@ -69,13 +70,12 @@ class DirectorServiceTest {
     void getDirectors_RestClientException() {
         // Mock exception
         String url = baseUrl + "?page=1";
-        when(restTemplate.getForObject(url, MovieResponse.class)).thenThrow(new RestClientException("400 Internal Server Error"));
+        when(restTemplate.getForObject(url, MovieResponse.class)).thenThrow(new RestClientException("Error with external API request"));
 
-        // Call the method
-        List<String> directors = directorService.getDirectors(1);
-
-        // Verify the result
-        assertTrue(directors.isEmpty());
+        // Verify the exception
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> directorService.getDirectors(1));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        assertEquals("Error with external API request", exception.getReason());
 
         // Verify interactions
         verify(restTemplate, times(1)).getForObject(url, MovieResponse.class);
@@ -89,16 +89,15 @@ class DirectorServiceTest {
             .thenThrow(HttpServerErrorException.create(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Internal Server Error",
-                HttpHeaders.EMPTY ,
+                HttpHeaders.EMPTY,
                 null,
                 null
             ));
 
-        // Call the method
-        List<String> directors = directorService.getDirectors(1);
-
-        // Verify the result
-        assertTrue(directors.isEmpty());
+        // Verify the exception
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> directorService.getDirectors(1));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        assertEquals("Error with external API request", exception.getReason());
 
         // Verify interactions
         verify(restTemplate, times(1)).getForObject(url, MovieResponse.class);

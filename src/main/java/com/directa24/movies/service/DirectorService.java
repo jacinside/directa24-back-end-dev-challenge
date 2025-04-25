@@ -4,10 +4,12 @@ import com.directa24.movies.model.MovieResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
@@ -81,13 +83,13 @@ public class DirectorService {
             } catch (HttpServerErrorException e) {
                 logger.error("Server error occurred while fetching data from URL: {}. Status code: {}, Response body: {}",
                     url, e.getStatusCode(), e.getResponseBodyAsString(), e);
-                break;
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error with external API request", e);
             } catch (RestClientException e) {
                 logger.error("Error occurred while fetching data from URL: {}", url, e);
-                break;
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error with external API request", e);
             } catch (Exception e) {
                 logger.error("An unexpected error occurred: {}", e.getMessage(), e);
-                break;
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred", e);
             }
         } while (page <= totalPages);
 
